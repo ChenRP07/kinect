@@ -332,6 +332,11 @@ bool kinect::record::KinectMkv2VolumetricVideo::get_point_cloud() {
         __log_time__;
         printf("\033[36mGenerate point cloud from mkv video frame #%u, cost %.3fms.\n\033[0m", this->video_.size(),
                time_cost);
+
+        k4a_image_release(depth_image);
+        k4a_image_release(color_image);
+        k4a_image_release(uncompressed_color_image);
+        k4a_image_release(point_cloud_image);
         return false;
 
     }
@@ -370,6 +375,17 @@ void kinect::record::KinectMkv2VolumetricVideo::output_point_cloud_sequence(
 
         printf("                      \033[36mWriting file done, cost %ds.\n\033[0m", this->video_.size(),
                time_end.tv_sec - time_start.tv_sec);
+
+        // release memory
+        if (this->k4a_handle_ != nullptr) {
+            k4a_playback_close(this->k4a_handle_);
+        }
+        if (this->k4a_capture_ != nullptr) {
+            k4a_capture_release(this->k4a_capture_);
+        }
+        if (this->k4a_point_cloud_transformation_handle_ != nullptr) {
+            k4a_transformation_destroy(this->k4a_point_cloud_transformation_handle_);
+        }
     }
     catch (const kinect::log::except &error_log) {
         error_log.log_error();
